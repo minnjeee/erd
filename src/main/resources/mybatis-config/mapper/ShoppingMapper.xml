@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mybatis-config.mapper.ShoppingMapper">
+
+    <select id="productList" resultType="com.inflearn.entity.ProductEntity">
+        select * from t_product order by product_id;
+    </select>
+
+    <select id="customerLogin" parameterType="com.inflearn.entity.CustomerEntity" resultType="com.inflearn.entity.CustomerEntity">
+        select * from t_customer
+        where customer_id = #{customer_id} and customer_pwd = #{customer_pwd}
+    </select>
+
+    <select id="checkAdd" parameterType="com.inflearn.entity.OrderEntity" resultType="com.inflearn.entity.OrderEntity">
+        select * from t_order where customer_id=#{customer_id} and product_id=#{product_id}
+    </select>
+
+    <update id="cartUpdate" parameterType="com.inflearn.entity.OrderEntity">
+        update t_order set order_qty = order_qty+1
+        where customer_id=#{customer_id} and product_id=#{product_id}
+    </update>
+
+    <insert id="cartAdd" parameterType="com.inflearn.entity.OrderEntity">
+        insert into t_order (customer_id, product_id, order_qty)
+        values (#{customer_id}, #{product_id}, 1)
+    </insert>
+
+    <select id="cartList" parameterType="java.lang.String" resultType="com.inflearn.entity.CartEntity">
+        select o.order_id, p.product_id, p.product_name, o.order_qty, p.product_price, (o.order_qty * p.product_price) amount
+        from t_order o inner join t_product p
+        on o.product_id = p.product_id
+        where customer_id = #{customer_id}
+    </select>
+
+    <delete id="cartCancel" parameterType="int">
+        delete from t_order
+        where order_id = #{order_id}
+    </delete>
+
+    <delete id="cartEmpty" parameterType="java.lang.String">
+        delete from t_order where customer_id = #{customer_id}
+    </delete>
+
+    <update id="pointSave" parameterType="com.inflearn.entity.CustomerEntity">
+        update t_customer set customer_reserves = customer_reserves + #{customer_reserves}
+        where customer_id = #{customer_id}
+        <selectKey resultType="int" keyProperty="customer_reserves" order="AFTER"> <!-- order="AFTER" : insert문 실행 후에 실행 -->
+            select customer_reserves from t_customer where customer_id=#{customer_id} <!-- 첨부파일 등록 시, 원글의 일련번호가 필요해서 -->
+        </selectKey>
+    </update>
+
+    <update id="qtyUpdate">
+        update t_order set order_qty = #{order_qty}
+        where order_id = #{order_id}
+    </update>
+</mapper>
